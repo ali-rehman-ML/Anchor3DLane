@@ -245,6 +245,22 @@ class OpenlaneDataset(Dataset):
                 json.dump(save_result, jsonFile)
                 jsonFile.write('\n')
         print("save results to ", filename)
+    def get_format_results(self, predictions, use_sigmoid=False):
+            
+            for idx in tqdm.tqdm(range(len(predictions))):
+                result = self.pred2apollosimformat(idx, predictions[idx])
+                save_result = {}
+                save_result['file_path'] = result['raw_file']
+                lane_lines = []
+                for k in range(len(result['laneLines'])):
+                    if use_sigmoid:
+                        cate = int(np.argmax(result['laneLines_logit'][k])) + 1
+                    else:
+                        cate = int(np.argmax(result['laneLines_logit'][k][1:])) + 1
+                    prob = float(result['laneLines_prob'][k])
+                    lane_lines.append({'xyz': result['laneLines'][k], 'category': cate, 'laneLines_prob': prob})
+                save_result['lane_lines'] = lane_lines
+            return save_result
 
     def eval(self, pred_filename, prob_th=0.5, test_list=None):
         evaluator = eval_openlane.OpenLaneEval(self)

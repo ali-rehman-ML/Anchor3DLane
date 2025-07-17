@@ -160,6 +160,7 @@ class OpenlaneDataset(Dataset):
                 anno = {'filename': os.path.join(self.img_dir, id + self.img_suffix),
                         'anno_file': os.path.join(self.cache_dir, id + '.pkl')}
                 self.img_infos.append(anno)
+        self.img_infos = sorted(self.img_infos, key=lambda x: x['filename'])
         print("after load annotation")
         print("find {} samples in {}.".format(len(self.img_infos), self.data_list))
 
@@ -174,6 +175,7 @@ class OpenlaneDataset(Dataset):
                 False).
         """
         results = self.img_infos[idx].copy()
+        file_path = results['filename']
         results['img_info'] = {}
         results['img_info']['filename'] = results['filename']
         results['ori_filename'] = results['filename']
@@ -191,6 +193,7 @@ class OpenlaneDataset(Dataset):
         results['gt_project_matrix'] = projection_g2im_extrinsic(results['gt_camera_extrinsic'], results['gt_camera_intrinsic'])
         results['gt_homography_matrix'] = homography_g2im_extrinsic(results['gt_camera_extrinsic'], results['gt_camera_intrinsic'])
         results = self.pipeline(results)
+        results['img_file'] = file_path
         return results
 
     def pred2lanes(self, pred):

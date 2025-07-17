@@ -49,7 +49,7 @@ class OpenlaneMFDataset(OpenlaneDataset):
                  prev_range=5,   # for train
                  is_prev=False,
                  **kwargs):
-        self.prev_dir = os.path.join(data_root, prev_dir)
+        self.prev_dir = prev_dir#os.path.join(data_root, prev_dir)
         self.prev_num = prev_num
         self.prev_step = prev_step
         self.prev_range = prev_range
@@ -66,6 +66,8 @@ class OpenlaneMFDataset(OpenlaneDataset):
                         'anno_file': os.path.join(self.cache_dir, id + '.pkl'), 
                         'prev_file': os.path.join(self.prev_dir, id + '.pkl')}
                 self.img_infos.append(anno)
+
+        self.img_infos = sorted(self.img_infos, key=lambda x: x['filename'])
         print("after load annotation")
         print("found {} samples in total".format(len(self.img_infos)))
 
@@ -118,6 +120,7 @@ class OpenlaneMFDataset(OpenlaneDataset):
                 False).
         """
         results = self.img_infos[idx].copy()
+        file_path = results['filename']
         results['img_info'] = {}
         results['img_info']['filename'] = results['filename']
         results['ori_filename'] = results['filename']
@@ -148,4 +151,6 @@ class OpenlaneMFDataset(OpenlaneDataset):
         results['prev_images'] = prev_images
         results['prev_poses'] = prev_poses
         results = self.pipeline(results)
+        results['img_file'] = file_path
+        results['prev_images'] = prev_images
         return results
